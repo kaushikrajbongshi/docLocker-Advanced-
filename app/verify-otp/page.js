@@ -56,7 +56,7 @@ export default function OtpPage() {
 
       const result = await res.json();
 
-      if (res.ok && result.success) {
+      if (result.success) {
         router.push("/dashboard");
       } else {
         setServerError(result.message || "Invalid OTP");
