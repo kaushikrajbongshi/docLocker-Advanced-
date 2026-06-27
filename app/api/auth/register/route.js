@@ -44,7 +44,7 @@ export async function POST(req) {
         id: newUser._id,
         name: newUser.username,
         email: newUser.email,
-        iseVerifed: newUser.verified,
+        isVerifed: newUser.verified,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }

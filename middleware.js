@@ -3,7 +3,6 @@ import { jwtVerify } from "jose";
 
 export async function middleware(req) {
   const token = req.cookies.get("authToken")?.value;
-  console.log("Token:", token);
 
   // If no token exists, redirect to login (except if already on login page)
   if (!token) {
@@ -17,8 +16,8 @@ export async function middleware(req) {
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    // console.log("Payload:", payload);
-    console.log(payload.iseVerifed);
+
+
 
     // Check if user is verified
     if (!payload.iseVerifed) {

@@ -10,13 +10,16 @@ const UploadDocument = ({ setActiveTab, currentFolderId }) => {
   console.log("Current Folder ID in Upload:", currentFolderId);
 
   // Cloudinary configuration
-  const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'your-cloud-name';
-  const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'your-upload-preset';
+  const CLOUDINARY_CLOUD_NAME =
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "your-cloud-name";
+  const CLOUDINARY_UPLOAD_PRESET =
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "your-upload-preset";
+  console.log("Cloud Name:", CLOUDINARY_CLOUD_NAME);
+  console.log("Upload Preset:", CLOUDINARY_UPLOAD_PRESET);
 
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
-
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -72,12 +75,12 @@ const UploadDocument = ({ setActiveTab, currentFolderId }) => {
   const uploadToCloudinary = (fileObj) => {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
-      formData.append('file', fileObj.file);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append("file", fileObj.file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
       const xhr = new XMLHttpRequest();
 
-      xhr.addEventListener('load', () => {
+      xhr.addEventListener("load", () => {
         if (xhr.status === 200) {
           const response = JSON.parse(xhr.responseText);
           resolve(response.secure_url);
@@ -86,11 +89,14 @@ const UploadDocument = ({ setActiveTab, currentFolderId }) => {
         }
       });
 
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed due to network error'));
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed due to network error"));
       });
 
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`);
+      xhr.open(
+        "POST",
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+      );
       xhr.send(formData);
     });
   };

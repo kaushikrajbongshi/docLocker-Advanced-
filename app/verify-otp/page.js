@@ -57,7 +57,7 @@ export default function OtpPage() {
       const result = await res.json();
 
       if (result.success) {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       } else {
         setServerError(result.message || "Invalid OTP");
       }
@@ -86,7 +86,7 @@ export default function OtpPage() {
         setTimer(300);
       } else {
         setServerError(
-          result.message || "Something went wrong, Wait for sometimes"
+          result.message || "Something went wrong, Wait for sometimes",
         );
       }
     } catch (err) {

@@ -13,7 +13,7 @@ export async function POST(req) {
   if (!parsed.success) {
     return NextResponse.json(
       { success: false, message: "Invalid OTP format" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -32,7 +32,7 @@ export async function POST(req) {
     if (!validUser) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -40,37 +40,50 @@ export async function POST(req) {
     if (!otpMatch) {
       return NextResponse.json(
         { success: false, message: "Wrong otp" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    await User.findByIdAndUpdate(
-      { _id: decoded.id },
-      {
-        verified: true,
-      },
-      { new: true }
+    const updatedUser = await User.findByIdAndUpdate(
+      decoded.id,
+      { verified: true },
+      { new: true },
     );
 
-    const cookie = serialize("authToken", token, {
+    // Create a NEW JWT with verified = true
+    const newToken = jwt.sign(
+      {
+        id: updatedUser._id,
+        name: updatedUser.username,
+        email: updatedUser.email,
+        iseVerifed: true, // keep same key because middleware uses it
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "12h" },
+    );
+
+    // Save new token in cookie
+    const cookie = serialize("authToken", newToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 12, // 12 hour
+      maxAge: 60 * 60 * 12,
       path: "/",
     });
+
+    
     await Otp.findOneAndDelete({ userId: decoded.id });
 
     const res = NextResponse.json(
       { success: true, message: "Otp verification successful" },
-      { status: 200 }
+      { status: 200 },
     );
     res.headers.set("Set-Cookie", cookie);
     return res;
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Internal server error!" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }
