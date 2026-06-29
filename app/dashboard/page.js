@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import CreateFolder from "@/component/Dashboard/CreateFolder";
 import UploadDocument from "@/component/Dashboard/UploadDocument";
+import { useRouter } from "next/navigation";
 import {
   FolderIcon,
   DocumentIcon,
@@ -18,6 +19,7 @@ const DriveInterface = () => {
   const [path, setPath] = useState([]); // stores navigation path
   const [data, setdata] = useState([]);
   const [activeTab, setActiveTab] = useState("myDrive"); // Add activeTab state
+  const route = useRouter();
 
   const fetchAll = async () => {
     try {
@@ -134,7 +136,7 @@ const DriveInterface = () => {
       if (item.type === "folder") {
         handleItemClick(item);
       } else {
-        window.open(item.url, "_blank");
+        route.push(`/document/${item.id || item._id}`);
       }
     }
     if (action === "download") {
@@ -158,7 +160,7 @@ const DriveInterface = () => {
   useEffect(() => {
     fetchAll();
   }, []);
-  
+
   // Render CreateFolder component
   if (activeTab === "createFolder") {
     return (

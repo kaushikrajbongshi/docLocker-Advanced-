@@ -8,7 +8,16 @@ const DocumentSchema = new mongoose.Schema({
   folderId: { type: mongoose.Schema.Types.ObjectId, ref: "Folder" }, // Parent folder
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   status: { type: String, enum: ["active", "deleted"], default: "active" },
-  createdAt: { type: Date, default: Date.now },
+
+  //for AI generation
+  summary: { type: String, default: null },
+  keyPoints: [{ type: String }],
+  summaryStatus: {
+    type: String,
+    enum: ["none", "processing", "done", "failed"],
+    default: "none",
+  },
+  summaryGeneratedAt: { type: Date, default: null },
 });
 
 export default mongoose.models.Document ||
