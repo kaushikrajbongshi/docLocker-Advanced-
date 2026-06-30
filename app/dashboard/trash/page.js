@@ -74,7 +74,7 @@ const TrashPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/files/recycle", { method: "GET" });
+      const res = await fetch("/api/v1/files/recycle", { method: "GET" });
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       
       const result = await res.json();
@@ -107,7 +107,7 @@ const TrashPage = () => {
       onConfirm: async () => {
         closeDialog();
         try {
-          const res = await fetch(`/api/files/recycle/${item.id}/restore`, {
+          const res = await fetch(`/api/v1/files/recycle/${item.id}/restore`, {
             method: "PATCH",
           });
           if (!res.ok) throw new Error("Restore failed");
@@ -128,7 +128,7 @@ const TrashPage = () => {
       onConfirm: async () => {
         closeDialog();
         try {
-          const res = await fetch(`/api/files/recycle/${item.id}/parmanentDelete`, {
+          const res = await fetch(`/api/v1/files/recycle/${item.id}/parmanentDelete`, {
             method: "PATCH",
           });
           if (!res.ok) throw new Error("Delete failed");

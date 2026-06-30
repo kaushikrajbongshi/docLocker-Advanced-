@@ -47,7 +47,7 @@ export default function OtpPage() {
     }
 
     try {
-      const res = await fetch("/api/auth/verify-otp", {
+      const res = await fetch("/api/v1/auth/verify-otp", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -72,7 +72,7 @@ export default function OtpPage() {
     console.log("done");
 
     try {
-      const res = await fetch("/api/auth/resendOtp", {
+      const res = await fetch("/api/v1/auth/resendOtp", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

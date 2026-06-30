@@ -15,7 +15,7 @@ export default function DocumentViewer() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    fetch(`/api/files/${id}/url`)
+    fetch(`/api/v1/files/${id}/url`)
       .then((res) => res.json())
       .then((data) => {
         setDocument(data.document);
@@ -38,7 +38,7 @@ export default function DocumentViewer() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/files/${id}/summarize`, {
+      const res = await fetch(`/api/v1/files/${id}/summarize`, {
         method: "POST",
       });
       const data = await res.json();
