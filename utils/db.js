@@ -1,9 +1,17 @@
-import mongoose from "mongoose";
+// utils/db.js
 
-const MONGODB_URI = process.env.DB_URI;
+import mongoose from "mongoose";
+import dns from "dns";
+
+// Fix: Use public DNS servers to resolve MongoDB Atlas SRV records
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
+const MONGODB_URI = process.env.MONGODB_URI_ATLAS;
 
 if (!MONGODB_URI) {
-  throw new Error("Please define DB_URI in .env");
+  throw new Error(
+    "Please define the MONGODB_URI_ATLAS environment variable"
+  );
 }
 
 let cached = global.mongoose;
@@ -17,15 +25,24 @@ if (!cached) {
 
 async function db() {
   if (cached.conn) {
-    // Already connected
     return cached.conn;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => {
-      console.log("MongoDB Connected");
-      return mongoose;
-    });
+    console.log("Connecting to MongoDB Atlas...");
+
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 10000,
+      })
+      .then((mongoose) => {
+        console.log("✅ MongoDB Atlas Connected");
+        return mongoose;
+      })
+      .catch((error) => {
+        console.error("❌ MongoDB Connection Error:", error);
+        throw error;
+      });
   }
 
   cached.conn = await cached.promise;

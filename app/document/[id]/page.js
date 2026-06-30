@@ -325,8 +325,8 @@ export default function DocumentViewer() {
                 <div className="bg-[#2d2d2d] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[90%]">
                   <p className="text-sm text-gray-300">
                     Hi! I can help you understand this document. Click
-                    "Summarize" to get a quick overview, or ask me anything
-                    about it.
+                    &quot;Summarize&quot; to get a quick overview, or ask me
+                    anything about it.
                   </p>
                 </div>
               </div>
