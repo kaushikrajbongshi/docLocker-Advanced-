@@ -129,7 +129,7 @@ const UploadDocument = ({ setActiveTab, currentFolderId }) => {
         formData.append("documents", JSON.stringify({ name, url }));
       });
 
-      const res = await fetch("/api/files/new/document", {
+      const res = await fetch("/api/v1/files/new/document", {
         method: "POST",
         body: formData,
       });

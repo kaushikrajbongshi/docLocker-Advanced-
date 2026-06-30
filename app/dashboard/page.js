@@ -37,7 +37,7 @@ const DriveInterface = () => {
   const fetchAll = async (page = 1) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/files?page=${page}&limit=10`);
+      const res = await fetch(`/api/v1/files?page=${page}&limit=10`);
       const result = await res.json();
       setdata(result);
       setPagination(result.pagination);
@@ -51,7 +51,7 @@ const DriveInterface = () => {
 
   const fetchFolderContents = async (folderId) => {
     try {
-      const res = await fetch(`/api/files/${folderId}/content`);
+      const res = await fetch(`/api/v1/files/${folderId}/content`);
       const result = await res.json();
       if (result.success && result.data) {
         return {
@@ -136,7 +136,7 @@ const DriveInterface = () => {
     }
     if (action === "delete") {
       try {
-        const res = await fetch(`/api/files/${item.id}/delete`, { method: "PATCH" });
+        const res = await fetch(`/api/v1/files/${item.id}/delete`, { method: "PATCH" });
         await res.json();
         fetchAll(currentPage);
       } catch (error) {}

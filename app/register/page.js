@@ -25,7 +25,7 @@ export default function SignUpPage() {
     try {
       const { username, email, password } = data;
 
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/v1/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -35,7 +35,7 @@ export default function SignUpPage() {
       console.log(result);
 
       if (res.ok) {
-        await fetch("/api/auth/otp-generate", {
+        await fetch("/api/v1/auth/otp-generate", {
           method: "POST",
           credentials: "include",
           headers: {

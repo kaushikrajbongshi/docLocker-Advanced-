@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       const { email, password } = data;
 
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -39,7 +39,7 @@ export default function LoginPage() {
       const result = await res.json();
 
       if (res.ok) {
-        await fetch("/api/auth/otp-generate", {
+        await fetch("/api/v1/auth/otp-generate", {
           method: "POST",
           credentials: "include",
           headers: {

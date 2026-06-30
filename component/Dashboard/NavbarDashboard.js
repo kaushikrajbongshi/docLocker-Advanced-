@@ -11,7 +11,7 @@ const NavbarDashboard = () => {
   const router = useRouter();
   const handleLogOut = async () => {
     try {
-      const res = await fetch("/api/auth/logOut", {
+      const res = await fetch("/api/v1/auth/logOut", {
         method: "POST",
       });
       const result = await res.json();

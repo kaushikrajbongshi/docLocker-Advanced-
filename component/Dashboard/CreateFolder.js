@@ -19,7 +19,7 @@ const CreateFolder = ({ setActiveTab, currentFolderId }) => {
         parentFolderId: currentFolderId || null,
       };
 
-      const res = await fetch("/api/files/new/folder", {
+      const res = await fetch("/api/v1/files/new/folder", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
