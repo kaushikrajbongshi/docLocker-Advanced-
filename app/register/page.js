@@ -6,6 +6,7 @@ import Footer from "@/component/Footer";
 import { userSchemaZod } from "@/utils/zodConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -21,14 +22,18 @@ export default function SignUpPage() {
     setError, // Add this to set custom errors
   } = formMethods;
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
-      const { username, email, password } = data;
+      console.log(data);
+
+      const { username, email, password, confirmPassword } = data;
 
       const res = await fetch("/api/v1/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, confirmPassword }),
       });
 
       const result = await res.json();
@@ -68,6 +73,8 @@ export default function SignUpPage() {
         type: "server",
         message: "Something went wrong. Please try again.",
       });
+    } finally {
+      setIsSubmitting(false); // ← stop loading
     }
   };
 
@@ -161,9 +168,21 @@ export default function SignUpPage() {
 
               <button
                 type="submit"
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={isSubmitting}
+                className={`w-full px-4 py-2.5 rounded-lg text-white font-medium transition-all flex items-center justify-center gap-2 ${
+                  isSubmitting
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
+                }`}
               >
-                Sign Up
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </form>
 
