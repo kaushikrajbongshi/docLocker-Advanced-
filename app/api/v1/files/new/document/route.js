@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import Document from "@/model/Document";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
+import { invalidateDashboardCache } from "@/lib/cache/dashboardCache";
 
 export async function POST(req) {
   try {
@@ -69,6 +70,7 @@ export async function POST(req) {
       uploadedDocuments.push(document);
     }
 
+    await invalidateDashboardCache(userId)
     return NextResponse.json({ 
       success: true, 
       message: `Successfully registered ${uploadedDocuments.length} file(s)`,

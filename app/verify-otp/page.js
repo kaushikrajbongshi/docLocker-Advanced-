@@ -1,5 +1,4 @@
 "use client";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
@@ -8,7 +7,7 @@ import { useEffect, useState } from "react";
 import { otpSchemaZod } from "@/utils/zodConfig";
 
 export default function OtpPage() {
-  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -72,7 +71,7 @@ export default function OtpPage() {
     console.log("done");
 
     try {
-      const res = await fetch("/api/v1/auth/resendOtp", {
+      const res = await fetch("/api/v1/auth/otp-generate", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

@@ -1,6 +1,6 @@
 // app/api/files/[id]/content/route.js
 import Folder from "@/model/Folder";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import Document from "@/model/Document";
 import { NextResponse } from "next/server";
 import { parse } from "cookie";

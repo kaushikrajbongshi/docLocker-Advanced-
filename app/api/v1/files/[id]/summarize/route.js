@@ -1,177 +1,136 @@
-export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-import Document from "@/model/Document";
-import pdfParse from "pdf-parse";
-import { GoogleGenAI } from "@google/genai";
 import { parse } from "cookie";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+import Document from "@/model/Document";
+import { getSummaryCache, setSummaryCache } from "@/lib/cache/summaryCache";
+import { addSummaryJob } from "@/lib/bullmq/producers/summary.producer";
 
 export async function POST(req, { params }) {
   const Params = await params;
   const id = Params.id;
+
   try {
+    // ==========================
+    // Verify Authentication
+    // ==========================
     const cookieHeader = req.headers.get("cookie") || "";
     const cookiesObj = parse(cookieHeader);
     const token = cookiesObj.authToken;
 
     if (!token) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 },
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        },
       );
     }
 
+    // ==========================
+    // Check Redis Cache
+    // ==========================
+    console.log("1. Request received");
+    const cacheSummary = await getSummaryCache(id);
+    console.log("2. Cache checked");
+    if (cacheSummary) {
+      return NextResponse.json(cacheSummary);
+    }
+
+    // ==========================
+    // Find Document
+    // ==========================
     const document = await Document.findById(id);
-    console.log(document);
+    console.log("3. Document found", document.summaryStatus);
 
     if (!document) {
       return NextResponse.json(
-        { error: "Document not found" },
-        { status: 404 },
+        {
+          success: false,
+          message: "Document not found.",
+        },
+        {
+          status: 404,
+        },
       );
     }
 
+    // ==========================
+    // Validate File Type
+    // ==========================
     if (document.type !== "pdf") {
       return NextResponse.json(
-        { error: "Only PDFs can be summarized" },
-        { status: 400 },
+        {
+          success: false,
+          message: "Only PDF documents can be summarized.",
+        },
+        {
+          status: 400,
+        },
       );
     }
 
-    // Already done?
+    // ==========================
+    // Already Summarized
+    // ==========================
     if (document.summaryStatus === "done" && document.summary) {
-      return NextResponse.json({
+      const response = {
         summary: document.summary,
         keyPoints: document.keyPoints,
         status: "done",
+      };
+
+      await setSummaryCache(id, response);
+
+      return NextResponse.json(response);
+    }
+
+    // ==========================
+    // Already Queued / Processing
+    // ==========================
+    if (
+      document.summaryStatus === "queued" ||
+      document.summaryStatus === "processing"
+    ) {
+      console.log("4. Already queued");
+      return NextResponse.json({
+        success: true,
+        status: document.summaryStatus,
+        message: "Summary generation is already in progress.",
       });
     }
 
-    // Mark as processing
-    document.summaryStatus = "processing";
+    // ==========================
+    // Queue Summary Job
+    // ==========================
+    console.log("5. Going to queue");
+    document.summaryStatus = "queued";
     await document.save();
 
-    // Download PDF
-    const response = await fetch(document.fileUrl);
-    console.log("Content-Type:", response.headers.get("content-type"));
-    if (!response.ok) throw new Error("Failed to download file");
-    const buffer = await response.arrayBuffer();
-    console.log("Buffer size:", buffer.byteLength);
+    console.log("6. Saved queued");
 
-    // Extract text
-    let text;
-    try {
-      const pdfBuffer = Buffer.from(buffer);
+    await addSummaryJob(id);
 
-      const parsed = await pdfParse(pdfBuffer);
-      text = parsed.text;
-
-      console.log("Extracted length:", text.length);
-      console.log(text.slice(0, 200));
-    } catch (err) {
-      console.error("Summarize error:", err);
-
-      document.summaryStatus = "failed";
-      await document.save();
-
-      return NextResponse.json(
-        {
-          error: "Could not extract text. The PDF may be scanned or corrupted.",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!text || text.trim().length < 50) {
-      document.summaryStatus = "failed";
-      await document.save();
-      return NextResponse.json(
-        { error: "No readable text found in this PDF." },
-        { status: 400 },
-      );
-    }
-
-    // Truncate if too long
-    const maxChars = 12000;
-    const truncatedText =
-      text.length > maxChars
-        ? text.slice(0, maxChars) + "\n\n[Document truncated]"
-        : text;
-
-    // Call OpenAI
-    const gemini_response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `
-                You are a document summarizer.
-
-                Return ONLY valid JSON in this format:
-
-                {
-                  "summary": "2-3 sentence summary",
-                  "keyPoints": [
-                    "point 1",
-                    "point 2",
-                    "point 3"
-                  ]
-                }
-
-                Document:
-
-              ${truncatedText}
-              `,
-    });
-
-    // Gemini response text
-    let content = gemini_response.text;
-
-    // Some versions of the SDK return text as a function
-    if (typeof content === "function") {
-      content = content();
-    }
-
-    console.log(content);
-
-    // Parse response
-    let result;
-
-    try {
-      // Remove ```json ... ``` if Gemini adds it
-      const jsonMatch =
-        content.match(/```json\s*([\s\S]*?)\s*```/) ||
-        content.match(/```\s*([\s\S]*?)\s*```/);
-
-      const jsonString = jsonMatch ? jsonMatch[1] : content;
-
-      result = JSON.parse(jsonString);
-    } catch (err) {
-      console.error("JSON Parse Error:", err);
-
-      result = {
-        summary: content,
-        keyPoints: [],
-      };
-    }
-    // Save to MongoDB
-    document.summary = result.summary;
-    document.keyPoints = result.keyPoints || [];
-    document.summaryStatus = "done";
-    document.summaryGeneratedAt = new Date();
-    await document.save();
+    console.log("7. Job added");
 
     return NextResponse.json({
-      summary: result.summary,
-      keyPoints: result.keyPoints,
-      status: "done",
+      success: true,
+      status: "queued",
+      message: "Summary job queued successfully.",
     });
   } catch (error) {
-    console.error("Summarize error:", error);
-    await Document.findByIdAndUpdate(id, { summaryStatus: "failed" });
+    console.error("Summary Queue Error:", error);
+
     return NextResponse.json(
-      { error: "Summarization failed. Please try again." },
-      { status: 500 },
+      {
+        success: false,
+        message: "Failed to queue summary job.",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

@@ -39,6 +39,8 @@ const DriveInterface = () => {
     try {
       const res = await fetch(`/api/v1/files?page=${page}&limit=10`);
       const result = await res.json();
+      console.log(result);
+      
       setdata(result);
       setPagination(result.pagination);
       setCurrentPage(page);

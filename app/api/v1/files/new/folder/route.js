@@ -1,7 +1,8 @@
 import Folder from "@/model/Folder";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
+import { invalidateDashboardCache } from "@/lib/cache/dashboardCache";
 
 export async function POST(req) {
   try {
@@ -16,7 +17,7 @@ export async function POST(req) {
     if (!name || !name.trim()) {
       return new Response(
         JSON.stringify({ error: "Folder name is required" }),
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +26,7 @@ export async function POST(req) {
       userId,
       parentFolderId: parentFolderId === "null" ? null : parentFolderId,
     });
-
+    await invalidateDashboardCache(userId);
     return new Response(JSON.stringify(newFolder), { status: 201 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {

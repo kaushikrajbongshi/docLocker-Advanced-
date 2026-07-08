@@ -1,11 +1,11 @@
-import Otp from "@/model/Otp";
 import bcrypt from "bcryptjs";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import User from "@/model/User";
 import jwt from "jsonwebtoken";
 import { otpSchemaZod } from "@/utils/zodConfig";
 import { NextResponse } from "next/server";
 import { serialize, parse } from "cookie";
+import { deleteOTP, getOTP } from "@/lib/otp";
 
 export async function POST(req) {
   const data = await req.json();
@@ -28,15 +28,15 @@ export async function POST(req) {
   await db();
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const validUser = await Otp.findOne({ userId: decoded.id });
-    if (!validUser) {
+    const otp = await getOTP(decoded.id);
+    if (!otp) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
         { status: 401 },
       );
     }
 
-    const otpMatch = await bcrypt.compare(parsed.data.otp, validUser.code);
+    const otpMatch = await bcrypt.compare(parsed.data.otp, otp.code);
     if (!otpMatch) {
       return NextResponse.json(
         { success: false, message: "Wrong otp" },
@@ -71,8 +71,7 @@ export async function POST(req) {
       path: "/",
     });
 
-    
-    await Otp.findOneAndDelete({ userId: decoded.id });
+    await deleteOTP(decoded.id);
 
     const res = NextResponse.json(
       { success: true, message: "Otp verification successful" },

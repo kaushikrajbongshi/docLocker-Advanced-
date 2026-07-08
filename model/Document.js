@@ -14,8 +14,8 @@ const DocumentSchema = new mongoose.Schema({
   keyPoints: [{ type: String }],
   summaryStatus: {
     type: String,
-    enum: ["none", "processing", "done", "failed"],
-    default: "none",
+    enum: ["idle", "queued", "processing", "done", "failed"],
+    default: "idle",
   },
   summaryGeneratedAt: { type: Date, default: null },
 });

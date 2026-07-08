@@ -1,5 +1,5 @@
 import User from "@/model/User";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import { parse, serialize } from "cookie";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
@@ -14,20 +14,24 @@ export async function POST(req) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    await User.findByIdAndUpdate(decoded.id, { verified: false }, { new: true });
+    await User.findByIdAndUpdate(
+      decoded.id,
+      { verified: false },
+      { new: true },
+    );
 
     const cookie = serialize("authToken", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      expires: new Date(0), 
+      expires: new Date(0),
       path: "/",
     });
 
     // Return JSON response instead of redirect
-    const response = NextResponse.json({ 
-      success: true, 
-      message: "Logged out successfully" 
+    const response = NextResponse.json({
+      success: true,
+      message: "Logged out successfully",
     });
     response.headers.set("Set-Cookie", cookie);
 
@@ -37,7 +41,7 @@ export async function POST(req) {
 
     return NextResponse.json(
       { success: false, message: "Internal server error!" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

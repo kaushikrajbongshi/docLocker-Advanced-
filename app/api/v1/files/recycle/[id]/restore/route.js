@@ -1,4 +1,4 @@
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import Document from "@/model/Document";
 import Folder from "@/model/Folder";
 import { NextResponse } from "next/server";

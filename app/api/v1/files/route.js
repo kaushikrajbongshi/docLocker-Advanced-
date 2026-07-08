@@ -1,10 +1,14 @@
 // app/api/files/route.js
 import Folder from "@/model/Folder";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import Document from "@/model/Document";
 import { NextResponse } from "next/server";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
+import {
+  getDashboardCache,
+  setDashboardCache,
+} from "@/lib/cache/dashboardCache";
 
 /**
  * @swagger
@@ -23,11 +27,10 @@ export async function GET(req) {
   try {
     await db();
 
-    //for pagination
+    // Pagination
     const { searchParams } = new URL(req.url);
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
-
     const skip = (page - 1) * limit;
 
     // Get user from cookie
@@ -42,15 +45,27 @@ export async function GET(req) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id;
 
-    // Fetch root folders and documents (parentFolderId/folderId = null)
+    // ===========================
+    // Check Redis Cache
+    // ===========================
+    const cache = await getDashboardCache(userId, page, limit);
+
+    if (cache) {
+      return NextResponse.json(cache);
+    }
+
+
+    // ===========================
+    // MongoDB Queries
+    // ===========================
     const folders = await Folder.find({
       parentFolderId: null,
-      userId: userId,
+      userId,
     }).lean();
 
     const documents = await Document.find({
       folderId: null,
-      userId: userId,
+      userId,
       status: "active",
     })
       .sort({ createdAt: -1 })
@@ -58,7 +73,7 @@ export async function GET(req) {
       .limit(limit)
       .lean();
 
-    // Transform the data to match frontend expectations
+    // Transform folders
     const transformedFolders = folders.map((folder) => ({
       _id: folder._id,
       id: folder._id,
@@ -71,6 +86,7 @@ export async function GET(req) {
       size: "-",
     }));
 
+    // Transform documents
     const transformedDocuments = documents.map((doc) => ({
       _id: doc._id,
       id: doc._id,
@@ -86,16 +102,19 @@ export async function GET(req) {
 
     const totalDocuments = await Document.countDocuments({
       folderId: null,
-      userId: userId,
+      userId,
       status: "active",
     });
 
     const totalPages = Math.ceil(totalDocuments / limit);
 
-    return NextResponse.json({
+    // ===========================
+    // Final Response
+    // ===========================
+    const response = {
+      success: true,
       folders: transformedFolders,
       documents: transformedDocuments,
-
       pagination: {
         currentPage: page,
         totalPages,
@@ -104,10 +123,23 @@ export async function GET(req) {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
       },
-    });
+    };
 
+    // ===========================
+    // Store in Redis
+    // ===========================
+    await setDashboardCache(userId, page, limit, response);
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching files:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

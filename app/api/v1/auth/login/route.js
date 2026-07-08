@@ -1,6 +1,6 @@
 import User from "@/model/User";
 import bcrypt from "bcryptjs";
-import db from "@/utils/db";
+import db from "@/lib/mongodb";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { LoginSchemaZod } from "@/utils/zodConfig";
