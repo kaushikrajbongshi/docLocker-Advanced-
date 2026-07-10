@@ -4,6 +4,10 @@ import { getSummaryCache, setSummaryCache } from "@/lib/cache/summaryCache";
 import { addSummaryJob } from "@/lib/bullmq/producers/summary.producer";
 import Document from "@/model/Document";
 import jwt from "jsonwebtoken";
+import {
+  generateSummarySync,
+  summarizeDocument,
+} from "@/lib/services/summary/summary.service";
 
 export async function POST(req, { params }) {
   const SECRET = process.env.JWT_SECRET;
@@ -94,6 +98,17 @@ export async function POST(req, { params }) {
       return NextResponse.json(response);
     }
 
+    if (process.env.USE_BULLMQ === "false") {
+      console.log("synchronus");
+      const result = await generateSummarySync(document);
+      return NextResponse.json({
+        success: true,
+        status: "done",
+        summary: result.summary,
+        keyPoints: result.keyPoints,
+      });
+    }
+
     // ==========================
     // Already Queued / Processing
     // ==========================
@@ -118,8 +133,9 @@ export async function POST(req, { params }) {
 
     console.log("6. Saved queued");
 
-    await addSummaryJob(id, userId);
+    //check for localhost or render
 
+    await addSummaryJob(id, userId);
     console.log("7. Job added");
 
     return NextResponse.json({

@@ -17,6 +17,7 @@ export default function DocumentViewer() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const socket = useSocket();
   const messagesEndRef = useRef(null);
+  const IS_BULLMQ = process.env.NEXT_PUBLIC_USE_BULLMQ === "true";
 
   useEffect(() => {
     fetch(`/api/v1/files/${id}/url`)
@@ -46,13 +47,41 @@ export default function DocumentViewer() {
       const res = await fetch(`/api/v1/files/${id}/summarize`, {
         method: "POST",
       });
+
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.message || "Summarization failed");
       }
+
+      // ==========================================
+      // Worker Mode
+      // ==========================================
+      if (IS_BULLMQ) {
+        // Socket.IO will handle the UI updates.
+        return;
+      }
+
+      // ==========================================
+      // Sync Mode
+      // ==========================================
+      setDocument((prev) => ({
+        ...prev,
+        summaryStatus: "done",
+        summary: data.summary,
+        keyPoints: data.keyPoints,
+      }));
+
+      setSummaryData({
+        summary: data.summary,
+        keyPoints: data.keyPoints,
+      });
+
+      setProgress(100);
+      setSummarizing(false);
     } catch (err) {
       setError(err.message);
+      setSummarizing(false);
     }
   };
 
