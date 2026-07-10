@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { parse } from "cookie";
-
-import Document from "@/model/Document";
 import { getSummaryCache, setSummaryCache } from "@/lib/cache/summaryCache";
 import { addSummaryJob } from "@/lib/bullmq/producers/summary.producer";
+import Document from "@/model/Document";
+import jwt from "jsonwebtoken";
 
 export async function POST(req, { params }) {
+  const SECRET = process.env.JWT_SECRET;
+
+  if (!SECRET) {
+    throw new Error("JWT_SECRET is not defined");
+  }
+
   const Params = await params;
   const id = Params.id;
 
@@ -28,7 +34,8 @@ export async function POST(req, { params }) {
         },
       );
     }
-
+    const user = await jwt.verify(token, SECRET);
+    const userId = await user.id;
     // ==========================
     // Check Redis Cache
     // ==========================
@@ -111,7 +118,7 @@ export async function POST(req, { params }) {
 
     console.log("6. Saved queued");
 
-    await addSummaryJob(id);
+    await addSummaryJob(id, userId);
 
     console.log("7. Job added");
 

@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { useSocket } from "../../../component/providers/SocketProvider";
+import { SOCKET_EVENTS } from "../../../lib/socket/events";
 
 export default function DocumentViewer() {
   const { id } = useParams();
@@ -11,7 +13,9 @@ export default function DocumentViewer() {
   const [summaryData, setSummaryData] = useState(null);
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [progress, setProgress] = useState(0);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const socket = useSocket();
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +39,7 @@ export default function DocumentViewer() {
 
   const handleSummarize = async () => {
     setSummarizing(true);
+    setProgress(0);
     setError(null);
 
     try {
@@ -43,16 +48,11 @@ export default function DocumentViewer() {
       });
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Summarization failed");
-
-      setSummaryData({
-        summary: data.summary,
-        keyPoints: data.keyPoints || [],
-      });
+      if (!res.ok) {
+        throw new Error(data.message || "Summarization failed");
+      }
     } catch (err) {
       setError(err.message);
-    } finally {
-      setSummarizing(false);
     }
   };
 
@@ -65,6 +65,75 @@ export default function DocumentViewer() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [summaryData, loadingSummary, error]);
+
+  //for summarize status update
+  useEffect(() => {
+    const handleQueued = (payload) => {
+      if (payload.documentId !== id) return;
+      setSummarizing(true);
+      setDocument((prev) => ({
+        ...prev,
+        summaryStatus: "queued",
+      }));
+    };
+
+    const handleProcessing = (payload) => {
+      if (payload.documentId !== id) return;
+
+      setSummarizing(true);
+
+      setDocument((prev) => ({
+        ...prev,
+        summaryStatus: "processing",
+      }));
+    };
+
+    const handleCompleted = (payload) => {
+      console.log("🎉 COMPLETED EVENT:", payload);
+
+      if (payload.documentId !== id) return;
+
+      setSummarizing(false);
+
+      setDocument((prev) => ({
+        ...prev,
+        summaryStatus: "done",
+        summary: payload.data.summary.summary,
+        keyPoints: payload.data.summary.keyPoints,
+      }));
+
+      setSummaryData(payload.data.summary);
+    };
+
+    const handleProgress = (payload) => {
+      if (payload.documentId !== id) return;
+      setProgress(payload.progress);
+    };
+
+    const handleFailed = (payload) => {
+      if (payload.documentId !== id) return;
+
+      setSummarizing(false);
+
+      setError(payload.data.message);
+
+      setDocument((prev) => ({
+        ...prev,
+        summaryStatus: "failed",
+      }));
+    };
+
+    socket.on(SOCKET_EVENTS.SUMMARY_QUEUED, handleQueued);
+    socket.on(SOCKET_EVENTS.SUMMARY_PROCESSING, handleProcessing);
+    socket.on(SOCKET_EVENTS.SUMMARY_PROGRESS, handleProgress);
+    socket.on(SOCKET_EVENTS.SUMMARY_COMPLETED, handleCompleted);
+    return () => {
+      socket.off(SOCKET_EVENTS.SUMMARY_QUEUED, handleQueued);
+      socket.off(SOCKET_EVENTS.SUMMARY_PROCESSING, handleProcessing);
+      socket.off(SOCKET_EVENTS.SUMMARY_PROGRESS, handleProgress);
+      socket.off(SOCKET_EVENTS.SUMMARY_COMPLETED, handleCompleted);
+    };
+  }, [socket, id]);
 
   if (!document) {
     return (
@@ -358,58 +427,92 @@ export default function DocumentViewer() {
                 !summaryData &&
                 !loadingSummary && (
                   <div className="flex gap-3">
-                    <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shrink-0">
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shrink-0 mt-1">
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     </div>
-                    <div className="bg-[#2d2d2d] rounded-2xl rounded-tl-sm px-4 py-3 w-[85%] space-y-3">
-                      {/* Shimmer effect header */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
-                          AI Generating
+
+                    <div className="bg-[#2d2d2d] rounded-2xl rounded-tl-sm px-4 py-4 w-[85%]">
+                      {/* Step indicator */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-semibold text-purple-400 uppercase tracking-widest">
+                          {progress < 30
+                            ? "Starting up"
+                            : progress < 50
+                              ? "Downloading PDF"
+                              : progress < 80
+                                ? "Reading content"
+                                : "Generating summary"}
                         </span>
                       </div>
-                      {/* Skeleton paragraphs */}
-                      <div className="space-y-2">
-                        <div className="h-3 bg-gray-700 rounded animate-pulse w-full" />
-                        <div className="h-3 bg-gray-700 rounded animate-pulse w-[92%]" />
-                        <div className="h-3 bg-gray-700 rounded animate-pulse w-[85%]" />
-                        <div className="h-3 bg-gray-700 rounded animate-pulse w-[78%]" />
-                        <div className="h-3 bg-gray-700 rounded animate-pulse w-[88%]" />
-                      </div>
-                      {/* Skeleton key points */}
-                      <div className="mt-3 space-y-2">
-                        <div className="h-2.5 bg-gray-700 rounded animate-pulse w-[35%]" />
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-gray-700 rounded-full animate-pulse shrink-0" />
-                          <div className="h-3 bg-gray-700 rounded animate-pulse flex-1" />
+
+                      {/* Progress bar — prominent */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span className="text-[11px] text-gray-500">
+                            Progress
+                          </span>
+                          <span className="text-[11px] text-purple-400 font-medium">
+                            {progress}%
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-gray-700 rounded-full animate-pulse shrink-0" />
-                          <div className="h-3 bg-gray-700 rounded animate-pulse flex-1" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-gray-700 rounded-full animate-pulse shrink-0" />
-                          <div className="h-3 bg-gray-700 rounded animate-pulse flex-1" />
-                        </div>
-                      </div>
-                      {/* Progress indicator */}
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-[shimmer_1.5s_infinite]"
+                            className="h-full rounded-full transition-all duration-700 ease-out"
                             style={{
-                              width: "60%",
+                              width: `${progress}%`,
                               background:
-                                "linear-gradient(90deg, #7c3aed 0%, #3b82f6 50%, #7c3aed 100%)",
-                              backgroundSize: "200% 100%",
-                              animation: "shimmer 1.5s infinite",
+                                "linear-gradient(90deg, #7c3aed, #3b82f6)",
                             }}
                           />
                         </div>
-                        <span className="text-[10px] text-gray-500">
-                          Analyzing...
-                        </span>
+                      </div>
+
+                      {/* Steps checklist */}
+                      <div className="space-y-2">
+                        {[
+                          { label: "Job queued", done: progress >= 10 },
+                          { label: "PDF downloaded", done: progress >= 30 },
+                          { label: "Text extracted", done: progress >= 50 },
+                          { label: "AI processing", done: progress >= 80 },
+                          { label: "Summary ready", done: progress >= 100 },
+                        ].map((step) => (
+                          <div
+                            key={step.label}
+                            className="flex items-center gap-2.5"
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                                step.done
+                                  ? "bg-purple-500"
+                                  : "border border-gray-600"
+                              }`}
+                            >
+                              {step.done && (
+                                <svg
+                                  className="w-2.5 h-2.5 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <span
+                              className={`text-xs transition-colors duration-300 ${
+                                step.done ? "text-gray-300" : "text-gray-600"
+                              }`}
+                            >
+                              {step.label}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -489,17 +592,6 @@ export default function DocumentViewer() {
                       />
                     </svg>
                   </div>
-                  <div className="bg-[#2d2d2d] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[90%]">
-                    <p className="text-sm text-red-400 mb-3">
-                      {error || "Failed to generate summary."}
-                    </p>
-                    <button
-                      onClick={handleTryAgain}
-                      className="text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1.5 rounded-md transition-colors"
-                    >
-                      🔄 Try Again
-                    </button>
-                  </div>
                 </div>
               )}
 
@@ -573,24 +665,6 @@ export default function DocumentViewer() {
 
             {/* Bottom Input Area */}
             <div className="border-t border-gray-800 p-4 shrink-0">
-              {summaryData && !loadingSummary && (
-                <div className="flex gap-2 mb-3">
-                  <button
-                    onClick={handleTryAgain}
-                    className="flex-1 py-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all border border-gray-700"
-                  >
-                    🔄 Try Again
-                  </button>
-                  <button
-                    className="flex-1 py-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all border border-gray-700"
-                    onClick={() =>
-                      alert("Phase 2: Ask a question about this document")
-                    }
-                  >
-                    💬 Ask Question
-                  </button>
-                </div>
-              )}
               <div className="relative">
                 <input
                   type="text"

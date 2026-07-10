@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import SocketTest from "./socket-test/page";
+import { SocketProvider } from "../component/providers/SocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +16,7 @@ export const metadata = {
   title: "DocLocker | Private vault",
   description: "Secure and Easy Access",
   icons: {
-    icon: "/favicon.ico", // Path to your favicon
+    icon: "/favicon.ico",
   },
 };
 
@@ -29,8 +29,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <SocketTest />
-        {children}
+        <SocketProvider>{children}</SocketProvider>
       </body>
     </html>
   );
