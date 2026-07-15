@@ -169,6 +169,8 @@ REDIS_URL=
 
 USE_BULLMQ=true
 
+NEXT_PUBLIC_USE_BULLMQ=true
+
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -194,17 +196,6 @@ npm run worker
 
 ---
 
-## API Overview
-
-| Method | Endpoint                      | Description       |
-|--------|--------------------------------|--------------------|
-| POST   | `/api/v1/auth/login`          | Login              |
-| POST   | `/api/v1/auth/register`       | Register           |
-| POST   | `/api/v1/files/upload`        | Upload File        |
-| POST   | `/api/v1/files/:id/summarize` | Generate Summary   |
-| GET    | `/api/v1/health/redis`        | Redis Health Check |
-
-The Redis health endpoint is polled by UptimeRobot every 5 minutes to keep the instance warm and detect downtime early.
 
 ---
 
