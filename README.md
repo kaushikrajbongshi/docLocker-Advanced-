@@ -8,7 +8,16 @@ AI-powered document summarization and is being extended with
 Retrieval-Augmented Generation (RAG) for document chat.
 
 ---
+# DocLocker
 
+> **Production-Style AI-Powered Document Management Platform**
+
+[![Live Demo](https://img.shields.io/badge/🚀-Live_Demo-success?style=for-the-badge)](https://doclocker.kaushikrajbongshi.in/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)]
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)]
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)]
+
+DocLocker is a production-oriented cloud document management platform inspired by Google Drive...
 ## Table of Contents
 
 - [Features](#features)
@@ -111,6 +120,7 @@ lib/
  ├── cache/
  ├── services/
  ├── socket/
+ ├── rag/
 models/
 middleware/
 public/
@@ -131,7 +141,7 @@ public/
 ### Installation
 
 ```bash
-git clone https://github.com/officialkaushik/doclocker.git
+git clone https://github.com/kaushikrajbongshi/docLocker-Advanced-.git
 cd doclocker
 npm install
 ```
@@ -143,21 +153,17 @@ npm install
 Create a `.env.local` file in the project root:
 
 ```env
-NODE_ENV=development
-
-MONGODB_URI=
+MONGODB_URI_ATLAS=
 
 JWT_SECRET=
-JWT_EXPIRES_IN=7d
 
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+BREVO_API_KEY =
+
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=
 
 GEMINI_API_KEY=
-
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
 
 REDIS_URL=
 
@@ -313,5 +319,5 @@ MIT License
 **Kaushik Rajbongshi**
 
 - Portfolio: https://kaushikrajbongshi.in
-- GitHub: https://github.com/officialkaushik
-- LinkedIn: https://linkedin.com/in/kaushikrajbongshi
+- GitHub: https://github.com/kaushikrajbongshi
+- LinkedIn: https://linkedin.com/in/kaushik-rajbongshi
