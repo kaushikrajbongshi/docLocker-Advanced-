@@ -8,7 +8,7 @@ export async function POST(req) {
     const embeddingResult = await generateEmbedding(text);
 
     const chunk = await saveChunk({
-      documentId: "test-document-new",
+      documentId: "test-document-zubeen",
       chunkIndex: 0,
       text,
       embedding: embeddingResult.vector,
