@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 import { parse } from "cookie";
 import { getSummaryCache, setSummaryCache } from "@/lib/cache/summaryCache";
 import { addSummaryJob } from "@/lib/bullmq/producers/summary.producer";
+import { generateSummarySync } from "@/lib/services/summary/summary.service";
+import { processDocument } from "@/lib/services/document/document-processing.service";
+import { indexDocument } from "@/lib/rag/indexing.service";
 import Document from "@/model/Document";
 import jwt from "jsonwebtoken";
-import {
-  generateSummarySync,
-  summarizeDocument,
-} from "@/lib/services/summary/summary.service";
 
 export async function POST(req, { params }) {
   const SECRET = process.env.JWT_SECRET;
@@ -98,9 +97,27 @@ export async function POST(req, { params }) {
       return NextResponse.json(response);
     }
 
+    //Trucate text
+
+    const { text, truncated } = await processDocument(document.fileUrl);
+
     if (process.env.USE_BULLMQ === "false") {
-      console.log("synchronus");
-      const result = await generateSummarySync(document);
+      console.log("synchronous");
+
+      indexDocument({
+        documentId: document._id.toString(),
+        text,
+      }).catch((err) => {
+        console.error(`RAG indexing failed for ${document._id}:`, err);
+        updateDocumentStatus(document._id.toString(), { rag: "failed" }).catch(
+          () => {},
+        );
+      });
+
+      console.log("sent for rag");
+
+      const result = await generateSummarySync(document, truncated);
+
       return NextResponse.json({
         success: true,
         status: "done",
@@ -135,7 +152,7 @@ export async function POST(req, { params }) {
 
     //check for localhost or render
 
-    await addSummaryJob(id, userId);
+    await addSummaryJob(id, userId, truncated);
     console.log("7. Job added");
 
     return NextResponse.json({

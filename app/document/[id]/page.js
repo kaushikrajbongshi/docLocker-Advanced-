@@ -63,8 +63,10 @@ export default function DocumentViewer() {
       }
 
       // ==========================================
-      // Sync Mode
+      // Sync Mode — show dummy loading steps
       // ==========================================
+      await runDummyLoadingSteps();
+
       setDocument((prev) => ({
         ...prev,
         summaryStatus: "done",
@@ -83,6 +85,29 @@ export default function DocumentViewer() {
       setError(err.message);
       setSummarizing(false);
     }
+  };
+
+  const runDummyLoadingSteps = () => {
+    return new Promise((resolve) => {
+      const steps = [
+        { progress: 10, label: "Job queued" },
+        { progress: 30, label: "PDF downloaded" },
+        { progress: 50, label: "Text extracted" },
+        { progress: 80, label: "AI processing" },
+        { progress: 100, label: "Summary ready" },
+      ];
+
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= steps.length) {
+          clearInterval(interval);
+          resolve();
+          return;
+        }
+        setProgress(steps[i].progress);
+        i++;
+      }, 600); // 600ms per step ≈ 3s total
+    });
   };
 
   const handleTryAgain = () => {
