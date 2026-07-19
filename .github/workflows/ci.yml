@@ -39,3 +39,4 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           USE_BULLMQ: false
           NEXT_PUBLIC_USE_BULLMQ: false
+          NEON_DB_URL: ${{ secrets.NEON_DB_URL }}

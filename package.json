@@ -2,12 +2,13 @@
   "name": "doc_locker",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "tsx --env-file=.env.local server.js",
-    "build": "next build",
-    "start": "NODE_ENV=production node server.js",
-    "worker": "tsx --env-file=.env.local lib/bullmq/workers/summary.worker.js"
-  },
+"scripts": {
+  "dev": "tsx --env-file=.env.local server.js",
+  "prebuild": "prisma generate",
+  "build": "next build",
+  "start": "NODE_ENV=production node server.js",
+  "worker": "tsx --env-file=.env.local lib/bullmq/workers/summary.worker.js"
+},
   "dependencies": {
     "@google/genai": "^2.10.0",
     "@heroicons/react": "^2.2.0",
