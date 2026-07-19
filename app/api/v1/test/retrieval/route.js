@@ -3,9 +3,10 @@ import { searchSimilarChunks } from "@/lib/rag";
 
 export async function POST(req) {
   try {
-    const { query, limit } = await req.json();
+    const {documentId, query, limit } = await req.json();
 
     const results = await searchSimilarChunks({
+      documentId,
       query,
       limit: limit || 5,
     });
@@ -25,7 +26,7 @@ export async function POST(req) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import {chatWithDocument} from "@/lib/rag/chat.service"
+import { chatWithDocument } from "@/lib/rag/chat.service";
 
 export async function POST(req) {
   try {
-    const { question } = await req.json();
+    const { documentId, question } = await req.json();
 
     const result = await chatWithDocument({
+      documentId,
       question,
     });
 
@@ -23,7 +24,7 @@ export async function POST(req) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }
