@@ -1,13 +1,12 @@
 "use client";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
-import AuthIllustration from "@/component/AuthIllustration";
+import AuthIllustration from "@/component/Authillustration.jsx";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { otpSchemaZod } from "@/utils/zodConfig";
 
 export default function OtpPage() {
-
   const {
     register,
     handleSubmit,

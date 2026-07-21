@@ -2,7 +2,8 @@
 
 import NavbarDashboard from "@/component/Dashboard/NavbarDashboard";
 import LeftNavigation from "@/component/Dashboard/LeftNavigation";
-import MobileBottomNav from "@/component/Dashboard/MobileBottomNav";
+import MobileBottomNav from "@/component/Dashboard/Mobilebottomnav.jsx";
+
 
 export default function DashboardShell({ children }) {
   return (

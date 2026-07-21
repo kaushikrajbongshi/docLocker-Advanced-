@@ -6,7 +6,7 @@ import Footer from "@/component/Footer";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import AuthIllustration from "@/component/AuthIllustration";
+import AuthIllustration from "@/component/Authillustration.jsx";
 
 // Login validation schema
 const loginSchema = z.object({

@@ -6,7 +6,7 @@ import { userSchemaZod } from "@/utils/zodConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import AuthIllustration from "@/component/AuthIllustration";
+import AuthIllustration from "@/component/Authillustration.jsx";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -196,7 +196,10 @@ export default function SignUpPage() {
 
             <p className="mt-4 text-sm text-[#566173]">
               Already have an account?{" "}
-              <a href="/login" className="text-[#16273F] font-medium hover:text-[#B08D57] underline underline-offset-2">
+              <a
+                href="/login"
+                className="text-[#16273F] font-medium hover:text-[#B08D57] underline underline-offset-2"
+              >
                 Sign In
               </a>
             </p>
