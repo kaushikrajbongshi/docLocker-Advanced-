@@ -18,11 +18,11 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-[fadeIn_0.2s_ease-out]">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
               confirmColor === "red" ? "bg-red-100" : "bg-green-100"
             }`}>
               <ExclamationTriangleIcon className={`w-6 h-6 ${
@@ -144,25 +144,25 @@ const TrashPage = () => {
     switch (type) {
       case "folder":
         return (
-          <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
             <FolderIcon className="w-5 h-5 text-amber-500" />
           </div>
         );
       case "pdf":
         return (
-          <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center shrink-0">
             <DocumentIcon className="w-5 h-5 text-red-500" />
           </div>
         );
       case "image":
         return (
-          <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
             <PhotoIcon className="w-5 h-5 text-green-500" />
           </div>
         );
       default:
         return (
-          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
             <DocumentIcon className="w-5 h-5 text-gray-500" />
           </div>
         );
@@ -181,12 +181,12 @@ const TrashPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-14 ">
+    <div className="min-h-screen bg-gray-50 mt-14">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-5">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-8 py-5">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-3 ml-9">
-            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
               <TrashIcon className="w-5 h-5 text-gray-600" />
             </div>
             <div>
@@ -200,7 +200,7 @@ const TrashPage = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-8 py-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -219,83 +219,87 @@ const TrashPage = () => {
         ) : (
           /* Items List */
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            {/* Table Header */}
-            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <div className="col-span-5">Name</div>
-              <div className="col-span-3">Deleted</div>
-              <div className="col-span-2">Expires In</div>
-              <div className="col-span-2 text-right">Actions</div>
-            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[640px]">
+                {/* Table Header */}
+                <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="col-span-5">Name</div>
+                  <div className="col-span-3">Deleted</div>
+                  <div className="col-span-2">Expires In</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
 
-            {/* Items */}
-            {trashItems.map((item, idx) => (
-              <div
-                key={item.id}
-                className={`flex items-center px-6 py-4 hover:bg-gray-50 transition-colors group ${
-                  idx !== trashItems.length - 1 ? "border-b border-gray-100" : ""
-                }`}
-              >
-                {/* Name */}
-                <div className="col-span-5 flex items-center gap-3 min-w-0">
-                  {getFileIcon(item.type)}
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 truncate line-through decoration-gray-400">
-                      {item.name}
-                    </h3>
-                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{item.type}</p>
+                {/* Items */}
+                {trashItems.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-gray-50 transition-colors group ${
+                      idx !== trashItems.length - 1 ? "border-b border-gray-100" : ""
+                    }`}
+                  >
+                    {/* Name */}
+                    <div className="col-span-5 flex items-center gap-3 min-w-0">
+                      {getFileIcon(item.type)}
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate line-through decoration-gray-400">
+                          {item.name}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-0.5 capitalize">{item.type}</p>
+                      </div>
+                    </div>
+
+                    {/* Deleted Date */}
+                    <div className="col-span-3 flex items-center gap-2 text-sm text-gray-500">
+                      <ClockIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className="truncate">{item.deletedDate || item.modified || "Recently"}</span>
+                    </div>
+
+                    {/* Remaining Days */}
+                    <div className="col-span-2">
+                      <span className={`text-sm flex items-center gap-1.5 ${getDaysColor(item.remainingDays)}`}>
+                        {item.remainingDays !== undefined && item.remainingDays !== null ? (
+                          <>
+                            <div className={`w-2 h-2 rounded-full shrink-0 ${
+                              item.remainingDays <= 3 ? "bg-red-500" : 
+                              item.remainingDays <= 7 ? "bg-amber-500" : "bg-green-500"
+                            }`} />
+                            {item.remainingDays} days left
+                          </>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-2 flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleRestore(item)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      >
+                        <ArrowPathIcon className="w-3.5 h-3.5" />
+                        Restore
+                      </button>
+
+                      <button
+                        onClick={() => handlePermanentDelete(item)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Forever"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                {/* Deleted Date */}
-                <div className="col-span-3 flex items-center gap-2 text-sm text-gray-500">
-                  <ClockIcon className="w-4 h-4 text-gray-400" />
-                  {item.deletedDate || item.modified || "Recently"}
-                </div>
-
-                {/* Remaining Days */}
-                <div className="col-span-2">
-                  <span className={`text-sm flex items-center gap-1.5 ${getDaysColor(item.remainingDays)}`}>
-                    {item.remainingDays !== undefined && item.remainingDays !== null ? (
-                      <>
-                        <div className={`w-2 h-2 rounded-full ${
-                          item.remainingDays <= 3 ? "bg-red-500" : 
-                          item.remainingDays <= 7 ? "bg-amber-500" : "bg-green-500"
-                        }`} />
-                        {item.remainingDays} days left
-                      </>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="col-span-2 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => handleRestore(item)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                  >
-                    <ArrowPathIcon className="w-3.5 h-3.5" />
-                    Restore
-                  </button>
-
-                  <button
-                    onClick={() => handlePermanentDelete(item)}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete Forever"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
 
         {/* Info Banner */}
         {trashItems.length > 0 && (
-          <div className="mt-6 flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-700">
-            <ExclamationTriangleIcon className="w-4 h-4" />
+          <div className="mt-6 flex items-start gap-2 px-4 py-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-700">
+            <ExclamationTriangleIcon className="w-4 h-4 shrink-0 mt-0.5" />
             <p>
               Items in trash will be automatically deleted after 30 days. 
               <button 

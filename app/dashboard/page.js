@@ -73,8 +73,34 @@ const DriveInterface = () => {
     return path[path.length - 1]._id || path[path.length - 1].id;
   };
 
+  // Re-fetches whatever the user is currently looking at — the root
+  // "My Drive" list, or the contents of the folder they're inside —
+  // so newly created folders / uploaded documents show up without a
+  // manual page reload.
+  const refreshCurrentView = async () => {
+    if (path.length === 0) {
+      fetchAll(currentPage);
+      return;
+    }
+    const folderId = getCurrentFolderId();
+    const folderContents = await fetchFolderContents(folderId);
+    setPath((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      updated[updated.length - 1] = {
+        ...last,
+        children: [
+          ...(folderContents.folders || []),
+          ...(folderContents.documents || []),
+        ],
+      };
+      return updated;
+    });
+  };
+
   useEffect(() => {
-    if (activeTab === "myDrive") fetchAll(1);
+    if (activeTab === "myDrive") refreshCurrentView();
   }, [activeTab]);
 
   const getCurrentItems = () => {
@@ -140,14 +166,10 @@ const DriveInterface = () => {
       try {
         const res = await fetch(`/api/v1/files/${item.id}/delete`, { method: "PATCH" });
         await res.json();
-        fetchAll(currentPage);
+        refreshCurrentView();
       } catch (error) {}
     }
   };
-
-  useEffect(() => {
-    fetchAll(1);
-  }, []);
 
   const goToPage = (page) => {
     if (page >= 1 && page <= (pagination?.totalPages || 1)) {
@@ -198,7 +220,7 @@ const DriveInterface = () => {
     return (
       <div className="h-screen bg-gray-50 flex flex-col">
         <div className="flex pt-16 h-full">
-          <div className="flex-1 ml-64 flex flex-col h-full">
+          <div className="flex-1 md:ml-64 flex flex-col h-full">
             <div className="flex-1 overflow-auto">
               <div className="flex justify-center items-start pt-12">
                 <CreateFolder setActiveTab={setActiveTab} currentFolderId={getCurrentFolderId()} />
@@ -214,7 +236,7 @@ const DriveInterface = () => {
     return (
       <div className="h-screen bg-gray-50 flex flex-col">
         <div className="flex pt-16 h-full">
-          <div className="flex-1 ml-64 flex flex-col h-full">
+          <div className="flex-1 md:ml-64 flex flex-col h-full">
             <div className="flex-1 overflow-auto">
               <div className="flex justify-center items-start pt-12">
                 <UploadDocument setActiveTab={setActiveTab} currentFolderId={getCurrentFolderId()} />
@@ -229,25 +251,25 @@ const DriveInterface = () => {
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
       <div className="flex pt-16 h-full">
-        <div className="flex-1 ml-64 flex flex-col h-full">
+        <div className="flex-1 md:ml-64 flex flex-col h-full">
           
           {/* ===== TOP TOOLBAR ===== */}
-          <div className="px-6 py-4 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 bg-white border-b border-gray-200">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               {/* Left: Breadcrumb */}
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap">
                 <button 
                   onClick={() => setPath([])}
-                  className="text-gray-500 hover:text-gray-900 font-medium transition-colors"
+                  className="text-gray-500 hover:text-gray-900 font-medium transition-colors shrink-0"
                 >
                   My Drive
                 </button>
                 {path.map((folder, idx) => (
                   <React.Fragment key={folder._id || folder.id}>
-                    <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                    <ChevronRightIcon className="w-4 h-4 text-gray-400 shrink-0" />
                     <button
                       onClick={() => handleBreadcrumbClick(idx)}
-                      className="text-gray-500 hover:text-gray-900 font-medium transition-colors"
+                      className="text-gray-500 hover:text-gray-900 font-medium transition-colors shrink-0"
                     >
                       {folder.name}
                     </button>
@@ -256,16 +278,16 @@ const DriveInterface = () => {
               </div>
 
               {/* Right: Actions */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {/* Search */}
-                <div className="relative">
+                <div className="relative flex-1 min-w-[160px] sm:flex-none">
                   <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search files..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-4 py-2 w-64 text-sm bg-gray-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="pl-9 pr-4 py-2 w-full sm:w-64 text-base sm:text-sm bg-gray-100 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -288,24 +310,24 @@ const DriveInterface = () => {
                 {/* Upload & New Folder */}
                 <button
                   onClick={() => setActiveTab("UploadDocument")}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium shadow-sm"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium shadow-sm"
                 >
                   <ArrowUpTrayIcon className="w-4 h-4" />
-                  Upload
+                  <span className="hidden sm:inline">Upload</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("createFolder")}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  New Folder
+                  <span className="hidden sm:inline">New Folder</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* ===== MAIN CONTENT ===== */}
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-4 sm:p-6">
             
             {/* FOLDERS SECTION */}
             {filteredFolders.length > 0 && (
@@ -434,65 +456,69 @@ const DriveInterface = () => {
                   </div>
                 ) : (
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    {/* Header */}
-                    <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="col-span-6">Name</div>
-                      <div className="col-span-2">Type</div>
-                      <div className="col-span-2">Size</div>
-                      <div className="col-span-2">Modified</div>
-                    </div>
-                    
-                    {filteredDocuments.map((doc, idx) => (
-                      <div
-                        key={doc._id || doc.id}
-                        onClick={() => handleItemClick(doc)}
-                        className={`flex items-center px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group ${
-                          idx !== filteredDocuments.length - 1 ? "border-b border-gray-100" : ""
-                        }`}
-                      >
-                        <div className="col-span-6 flex items-center gap-3 flex-1 min-w-0">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getFileColor(doc.type).split(" ").slice(0, 2).join(" ")}`}>
-                            {getFileIcon(doc.type)}
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-medium text-gray-900 text-sm truncate">{doc.name}</h3>
-                            <p className="text-xs text-gray-400 mt-0.5">{doc.owner}</p>
-                          </div>
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[640px]">
+                        {/* Header */}
+                        <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="col-span-6">Name</div>
+                          <div className="col-span-2">Type</div>
+                          <div className="col-span-2">Size</div>
+                          <div className="col-span-2">Modified</div>
                         </div>
-                        <div className="col-span-2">
-                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getFileColor(doc.type)}`}>
-                            {doc.type}
-                          </span>
-                        </div>
-                        <div className="col-span-2 text-sm text-gray-500">{doc.size}</div>
-                        <div className="col-span-2 flex items-center justify-between">
-                          <span className="text-sm text-gray-500">{doc.modified}</span>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {doc.type === "pdf" && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); route.push(`/document/${doc.id || doc._id}`); }}
-                                className="p-2 hover:bg-purple-50 rounded-lg text-purple-500 transition-colors"
-                                title="AI Summary"
-                              >
-                                <SparklesIcon className="w-4 h-4" />
-                              </button>
-                            )}
-                            <button 
-                              onClick={(e) => handleItemAction("download", doc, e)}
-                              className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
-                            >
-                              <ArrowDownTrayIcon className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={(e) => handleItemAction("delete", doc, e)}
-                              className="p-2 hover:bg-red-50 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
+
+                        {filteredDocuments.map((doc, idx) => (
+                          <div
+                            key={doc._id || doc.id}
+                            onClick={() => handleItemClick(doc)}
+                            className={`grid grid-cols-12 gap-4 items-center px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group ${
+                              idx !== filteredDocuments.length - 1 ? "border-b border-gray-100" : ""
+                            }`}
+                          >
+                            <div className="col-span-6 flex items-center gap-3 min-w-0">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getFileColor(doc.type).split(" ").slice(0, 2).join(" ")}`}>
+                                {getFileIcon(doc.type)}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="font-medium text-gray-900 text-sm truncate">{doc.name}</h3>
+                                <p className="text-xs text-gray-400 mt-0.5">{doc.owner}</p>
+                              </div>
+                            </div>
+                            <div className="col-span-2">
+                              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getFileColor(doc.type)}`}>
+                                {doc.type}
+                              </span>
+                            </div>
+                            <div className="col-span-2 text-sm text-gray-500">{doc.size}</div>
+                            <div className="col-span-2 flex items-center justify-between">
+                              <span className="text-sm text-gray-500">{doc.modified}</span>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {doc.type === "pdf" && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); route.push(`/document/${doc.id || doc._id}`); }}
+                                    className="p-2 hover:bg-purple-50 rounded-lg text-purple-500 transition-colors"
+                                    title="AI Summary"
+                                  >
+                                    <SparklesIcon className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={(e) => handleItemAction("download", doc, e)}
+                                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                                >
+                                  <ArrowDownTrayIcon className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleItemAction("delete", doc, e)}
+                                  className="p-2 hover:bg-red-50 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -538,13 +564,13 @@ const DriveInterface = () => {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && path.length === 0 && !searchQuery && (
-              <div className="mt-8 flex items-center justify-between">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-gray-500">
                   Showing <span className="font-medium text-gray-900">{((currentPage - 1) * 10) + 1}</span> to{" "}
                   <span className="font-medium text-gray-900">{Math.min(currentPage * 10, pagination.totalDocuments)}</span> of{" "}
                   <span className="font-medium text-gray-900">{pagination.totalDocuments}</span> files
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={!pagination.hasPreviousPage}

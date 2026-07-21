@@ -1,12 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
 import { userSchemaZod } from "@/utils/zodConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import AuthIllustration from "@/component/Authillustration.jsx";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -79,37 +79,38 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#F6F2E9] font-sans text-[#16273F] antialiased overflow-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+        .font-serif-display { font-family: 'Fraunces', ui-serif, Georgia, serif; }
+        .font-sans { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+      `}</style>
+
       {/* Navbar */}
       <Navbar />
 
       {/* Main Content */}
       <div className="flex flex-1">
-        {/* Left Side Image */}
-        <div className="hidden md:flex w-1/2 items-center justify-center bg-gray-100">
-          <Image
-            src="/signup.png"
-            alt="Sign up illustration"
-            width={500}
-            height={500}
-          />
+        {/* Left Side Illustration — same vault/document motif as landing + login */}
+        <div className="hidden md:flex w-1/2 items-center justify-center border-r border-[#16273F]/10 bg-[#EFEAE0]">
+          <AuthIllustration />
         </div>
 
         {/* Right Side Form */}
-        <div className="flex w-full md:w-1/2 items-center justify-center p-8">
+        <div className="flex w-full md:w-1/2 items-center justify-center p-8 overflow-y-auto">
           <div className="w-full max-w-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            <h2 className="font-serif-display text-3xl font-medium tracking-tight text-[#16273F] mb-8">
               Create Your Account
             </h2>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Username */}
               <div>
                 <input
                   {...register("username")}
                   type="text"
                   placeholder="Username"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-[#16273F]/20 rounded-lg bg-white text-[#16273F] placeholder:text-[#566173]/70 focus:outline-none focus:ring-2 focus:ring-[#B08D57] focus:border-transparent transition-shadow"
                 />
                 {errors.username && (
                   <p className="text-sm text-red-600 mt-1">
@@ -124,7 +125,7 @@ export default function SignUpPage() {
                   {...register("email")}
                   type="email"
                   placeholder="Email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-[#16273F]/20 rounded-lg bg-white text-[#16273F] placeholder:text-[#566173]/70 focus:outline-none focus:ring-2 focus:ring-[#B08D57] focus:border-transparent transition-shadow"
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600 mt-1">
@@ -139,7 +140,7 @@ export default function SignUpPage() {
                   {...register("password")}
                   type="password"
                   placeholder="Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-[#16273F]/20 rounded-lg bg-white text-[#16273F] placeholder:text-[#566173]/70 focus:outline-none focus:ring-2 focus:ring-[#B08D57] focus:border-transparent transition-shadow"
                 />
                 {errors.password && (
                   <p className="text-sm text-red-600 mt-1">
@@ -157,7 +158,7 @@ export default function SignUpPage() {
                   })}
                   type="password"
                   placeholder="Confirm Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-[#16273F]/20 rounded-lg bg-white text-[#16273F] placeholder:text-[#566173]/70 focus:outline-none focus:ring-2 focus:ring-[#B08D57] focus:border-transparent transition-shadow"
                 />
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-600 mt-1">
@@ -169,15 +170,15 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full px-4 py-2.5 rounded-lg text-white font-medium transition-all flex items-center justify-center gap-2 ${
+                className={`w-full px-4 py-3 rounded-full text-[#F6F2E9] font-medium transition-all flex items-center justify-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B08D57] ${
                   isSubmitting
-                    ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
+                    ? "bg-[#16273F]/50 cursor-not-allowed"
+                    : "bg-[#16273F] hover:bg-[#0F1B2D] active:scale-[0.98]"
                 }`}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-[#F6F2E9]/30 border-t-[#F6F2E9] rounded-full animate-spin" />
                     Creating account...
                   </>
                 ) : (
@@ -193,9 +194,12 @@ export default function SignUpPage() {
               </p>
             )}
 
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-[#566173]">
               Already have an account?{" "}
-              <a href="/login" className="text-blue-600 hover:underline">
+              <a
+                href="/login"
+                className="text-[#16273F] font-medium hover:text-[#B08D57] underline underline-offset-2"
+              >
                 Sign In
               </a>
             </p>

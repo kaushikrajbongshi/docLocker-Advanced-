@@ -1,17 +1,16 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import {
-  PlusIcon,
-  FolderPlusIcon,
-  CloudArrowUpIcon,
   FolderIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const LeftNavigation = () => {
-  const [showNewMenu, setShowNewMenu] = useState(false);
-  const [activeTab, setActiveTab] = useState("myDrive");
+  const pathname = usePathname();
+  const isMyDrive = pathname === "/dashboard";
+  const isTrash = pathname.startsWith("/dashboard/trash");
 
   return (
     <div className="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-gray-200 flex flex-col z-30">
@@ -59,9 +58,8 @@ const LeftNavigation = () => {
         <div className="space-y-1">
           <Link href="/dashboard">
             <button
-              onClick={() => setActiveTab("myDrive")}
               className={`flex w-full items-center space-x-3 px-3 py-2 rounded-lg transition-colors cursor-pointer mt-4 ${
-                activeTab === "myDrive"
+                isMyDrive
                   ? "text-blue-700 bg-blue-50"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
@@ -72,9 +70,8 @@ const LeftNavigation = () => {
           </Link>
           <Link href="/dashboard/trash">
             <button
-              onClick={() => setActiveTab("trash")}
               className={`flex w-full items-center space-x-3 px-3 my-2 py-2 rounded-lg transition-colors cursor-pointer ${
-                activeTab === "trash"
+                isTrash
                   ? "text-blue-700 bg-blue-50"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
