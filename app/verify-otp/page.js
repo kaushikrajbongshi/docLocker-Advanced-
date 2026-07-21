@@ -1,7 +1,7 @@
 "use client";
-import Image from "next/image";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
+import AuthIllustration from "@/component/AuthIllustration";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { otpSchemaZod } from "@/utils/zodConfig";
@@ -94,29 +94,30 @@ export default function OtpPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#F6F2E9] font-sans text-[#16273F] antialiased overflow-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+        .font-serif-display { font-family: 'Fraunces', ui-serif, Georgia, serif; }
+        .font-sans { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+      `}</style>
+
       {/* Navbar */}
       <Navbar />
 
       {/* Main Content */}
       <div className="flex flex-1">
-        {/* Left Side Image */}
-        <div className="hidden md:flex w-1/2 items-center justify-center bg-gray-100">
-          <Image
-            src="/otp.png"
-            alt="OTP Verification illustration"
-            width={400}
-            height={400}
-          />
+        {/* Left Side Illustration — same vault/document motif as login + sign up */}
+        <div className="hidden md:flex w-1/2 items-center justify-center border-r border-[#16273F]/10 bg-[#EFEAE0]">
+          <AuthIllustration />
         </div>
 
         {/* Right Side Form */}
         <div className="flex w-full md:w-1/2 items-center justify-center p-8">
           <div className="w-full max-w-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            <h2 className="font-serif-display text-3xl font-medium tracking-tight text-[#16273F] mb-2">
               Verify Your Account
             </h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-[#566173] mb-6">
               Please enter the 6-digit code sent to your email.
             </p>
 
@@ -132,7 +133,7 @@ export default function OtpPage() {
                     message: "OTP must be 6 digits",
                   },
                 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-[#16273F]/20 rounded-lg bg-white text-center text-lg tracking-widest text-[#16273F] placeholder:text-[#566173]/70 placeholder:tracking-normal placeholder:text-base focus:outline-none focus:ring-2 focus:ring-[#B08D57] focus:border-transparent transition-shadow"
               />
 
               {errors.otp && (
@@ -142,7 +143,7 @@ export default function OtpPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="w-full px-4 py-3 bg-[#16273F] text-[#F6F2E9] font-medium rounded-full hover:bg-[#0F1B2D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B08D57]"
               >
                 {loading ? "Verifying..." : "Verify"}
               </button>
@@ -152,15 +153,15 @@ export default function OtpPage() {
               <p className="text-red-500 text-sm mt-2">{serverError}</p>
             )}
 
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-[#566173]">
               Didn&apos;t receive the code?{" "}
               <button
                 type="button"
                 disabled={disableButton}
-                className={`${
+                className={`font-medium ${
                   disableButton
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-blue-600 hover:underline"
+                    ? "text-[#566173]/50 cursor-not-allowed"
+                    : "text-[#16273F] hover:text-[#B08D57] underline underline-offset-2"
                 }`}
                 onClick={handleResendOtp}
               >
